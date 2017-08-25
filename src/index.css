@@ -8,7 +8,7 @@ body {
     box-sizing: border-box;
 }
 
-h1, h2, h3, h4, p {
+h1, h2, h3, h4, p, img {
     margin: 0;
     padding: 0;
 }
@@ -21,4 +21,8 @@ h1, h2, h3, h4, p {
 .flex-row {
     display: flex;
     flex-direction: row;
+}
+
+.position-relative {
+    position: relative;
 }

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import _ from 'lodash';
 
 const { IMAGE_URL, TITLE, TEXT } = require('./mockData.json');
 
@@ -10,9 +11,14 @@ export default class CardEditable extends Component {
       height: 480,
       width: 320,
       imageUrl: IMAGE_URL,
+      imageWidth: 320,
+      imageHeight: 'auto',
+      imageOffsetX: 0,
+      imageOffsetY: 0,
       title: TITLE,
       text: TEXT,
-      dragStart: null
+      dragStart: null,
+      editing: 'image'
     };
   }
 
@@ -26,46 +32,53 @@ export default class CardEditable extends Component {
     window.removeEventListener('mouseup', this.handleMouseUp);
   }
 
-  handleMouseDown = (e, el) => {
+  handleDragStart = (e, el) => {
+    e.preventDefault();
     const dragStart = {
       el,
       x0: e.clientX,
       y0: e.clientY,
-      originalHeight: this.state.height,
-      originalWidth: this.state.width
+      originalState: _.assign(this.state)
     };
     this.setState({ dragStart });
   }
 
   handleMouseMove = (e) => {
     if (this.state.dragStart) {
-      const { el, x0, y0, originalWidth, originalHeight } = this.state.dragStart;
+      const { el, x0, y0, originalState } = this.state.dragStart;
+      const { height, width, imageWidth, imageHeight, imageOffsetX, imageOffsetY } = originalState;
       const dx = e.clientX - x0;
       const dy = e.clientY - y0;
       switch (el) {
         case 'top':
-          this.setState({ height: originalHeight - 2 * dy });
+          this.setState({ height: height - 2 * dy });
           break;
         case 'bottom':
-          this.setState({ height: originalHeight + 2 * dy });
+          this.setState({ height: height + 2 * dy });
           break;
         case 'left':
-          this.setState({ width: originalWidth - 2 * dx });
+          this.setState({ width: width - 2 * dx });
           break;
         case 'right':
-          this.setState({ width: originalWidth + 2 * dx });
+          this.setState({ width: width + 2 * dx });
           break;
         case 'bottomleft':
-          this.setState({ height: originalHeight + 2 * dy, width: originalWidth - 2 * dx });
+          this.setState({ height: height + 2 * dy, width: width - 2 * dx });
           break;
         case 'bottomright':
-          this.setState({ height: originalHeight + 2 * dy, width: originalWidth + 2 * dx });
+          this.setState({ height: height + 2 * dy, width: width + 2 * dx });
           break;
         case 'topleft':
-          this.setState({ height: originalHeight - 2 * dy, width: originalWidth - 2 * dx });
+          this.setState({ height: height - 2 * dy, width: width - 2 * dx });
           break;
         case 'topright':
-          this.setState({ height: originalHeight - 2 * dy, width: originalWidth + 2 * dx });
+          this.setState({ height: height - 2 * dy, width: width + 2 * dx });
+          break;
+        case 'image':
+          this.setState({ imageOffsetX: imageOffsetX + dx, imageOffsetY: imageOffsetY + dy });
+          break;
+        case 'image-bottomright':
+          this.setState({ imageWidth: imageWidth + dx });
           break;
         default:
           break;
@@ -81,60 +94,178 @@ export default class CardEditable extends Component {
     }
   }
 
+  handleClick = (e, el) => {
+    if (!this.state.editing) {
+      this.setState({
+        editing: el
+      });
+    } else {
+      this.setState({
+        editing: null
+      });
+    }
+  }
+
+  renderImgContainerFilters() {
+    if (!this.refs.imgContainer) {
+      return false;
+    }
+    const rect = this.refs.imgContainer.getBoundingClientRect();
+    const ww = window.innerWidth;
+    const wh = window.innerHeight;
+    if (!rect) {
+      return false;
+    }
+    const { top, left, width, height } = rect;
+    return (
+      <div className="container-filters" style={{ width: ww, height: wh }}>
+        <div
+          className="bar"
+          style={{ top: 0, left: 0,  width: ww, height: top }}
+        />
+        <div
+          className="bar"
+          style={{ top: top + height, left: 0, width: ww, height: wh - top - height }}
+        />
+        <div
+          className="bar"
+          style={{ top: top, left: 0, width: left, height: height }}
+        />
+        <div
+          className="bar"
+          style={{ top: top, left: left + width, width: ww - left - width, height: height }}
+        />
+        <style jsx>{`
+          .container-filters {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+          }
+          .container-filters .bar {
+            position: absolute;
+            background-color: rgba(255,255,255,0.8);
+            z-index: 5;
+          }
+        `}
+        </style>
+      </div>
+    );
+  }
+
   render() {
-    const { width, height } = this.state;
+    const { width, height, imageWidth, imageOffsetX, imageOffsetY } = this.state;
+    const edgeCls = this.state.editing ? 'edge disabled' : 'draggable edge';
+    const cornerCls = this.state.editing ? 'corner disabled' : 'draggable corner';
     return (
       <div className="CardEditable flex-column" style={{ width, height }}>
         { this.state.imageUrl && (
-          <div className="img-container" style={{ width, height: height / 2 }}>
-            <img alt={this.state.title} src={this.state.imageUrl} width={width} />
+          <div
+            ref="imgContainer"
+            className={'img-container' + (this.state.editing === 'image' ? ' translucent' : '')}
+            style={{ position: 'relative', width, height: height / 2 }}
+            >
+            { this.state.editing === 'image' ? (
+              <div style={{ zIndex: 1 }}>
+                <div
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: 'rgba(0,0,0,0.5)'
+                  }}
+                  onClick={this.handleClick}
+                />
+                <div
+                  className='position-relative'
+                  style={{
+                    width: imageWidth,
+                    transform: `translate(${imageOffsetX}px, ${imageOffsetY}px)`,
+                  }}
+                  >
+                  <img
+                    className="draggable"
+                    alt={this.state.title}
+                    src={this.state.imageUrl}
+                    width={imageWidth}
+                    style={{ margin: 0 }}
+                    onMouseDown={e => this.handleDragStart(e, 'image')}
+                  />
+                  <div
+                    className="draggable corner"
+                    style={{
+                      height: 20,
+                      width: 20,
+                      bottom: 0,
+                      right: 0,
+                      cursor: 'nwse-resize'
+                    }}
+                    onMouseDown={e => this.handleDragStart(e, 'image-bottomright')}
+                  />
+                </div>
+                { this.renderImgContainerFilters() }
+              </div>
+            ) : (
+              <img
+                className="editable"
+                alt={this.state.title}
+                src={this.state.imageUrl}
+                width={imageWidth}
+                style={{
+                  transform: `translate(${imageOffsetX}px, ${imageOffsetY}px)`
+                }}
+                onClick={e => this.handleClick(e, 'image')}
+              />
+            ) }
           </div>
         ) }
         <div className="text-container">
-          <h1>{ this.state.title }</h1>
-          <p>{ this.state.text }</p>
+          <h1 className="editable">{ this.state.title }</h1>
+          <p className="editable">{ this.state.text }</p>
         </div>
 
         <div
-          className="draggable edge"
+          className={edgeCls}
           style={{ top: -5, width: '100%', cursor: 'ns-resize' }}
-          onMouseDown={(e) => this.handleMouseDown(e, 'top')}
+          onMouseDown={e => this.handleDragStart(e, 'top')}
         />
         <div
-          className="draggable edge"
+          className={edgeCls}
           style={{ bottom: -5, width: '100%', cursor: 'ns-resize' }}
-          onMouseDown={(e) => this.handleMouseDown(e, 'bottom')}
+          onMouseDown={e => this.handleDragStart(e, 'bottom')}
         />
         <div
-          className="draggable edge"
+          className={edgeCls}
           style={{ right: -5, height: '100%', cursor: 'ew-resize' }}
-          onMouseDown={(e) => this.handleMouseDown(e, 'right')}
+          onMouseDown={e => this.handleDragStart(e, 'right')}
         />
         <div
-          className="draggable edge"
+          className={edgeCls}
           style={{ left: -5, height: '100%', cursor: 'ew-resize' }}
-          onMouseDown={(e) => this.handleMouseDown(e, 'left')}
+          onMouseDown={e => this.handleDragStart(e, 'left')}
         />
 
         <div
-          className="draggable corner"
+          className={cornerCls}
           style={{ top: -5, left: -5, cursor: 'nwse-resize' }}
-          onMouseDown={(e) => this.handleMouseDown(e, 'topleft')}
+          onMouseDown={e => this.handleDragStart(e, 'topleft')}
         />
         <div
-          className="draggable corner"
+          className={cornerCls}
           style={{ top: -5, right: -5, cursor: 'nesw-resize' }}
-          onMouseDown={(e) => this.handleMouseDown(e, 'topright')}
+          onMouseDown={e => this.handleDragStart(e, 'topright')}
         />
         <div
-          className="draggable corner"
+          className={cornerCls}
           style={{ bottom: -5, left: -5, cursor: 'nesw-resize' }}
-          onMouseDown={(e) => this.handleMouseDown(e, 'bottomleft')}
+          onMouseDown={e => this.handleDragStart(e, 'bottomleft')}
         />
         <div
-          className="draggable corner"
+          className={cornerCls}
           style={{ bottom: -5, right: -5, cursor: 'nwse-resize' }}
-          onMouseDown={(e) => this.handleMouseDown(e, 'bottomright')}
+          onMouseDown={e => this.handleDragStart(e, 'bottomright')}
         />
 
         <style jsx>{`
@@ -153,6 +284,9 @@ export default class CardEditable extends Component {
             border-radius: 5px 5px 0px 0px;
             overflow: hidden;
           }
+          .CardEditable .img-container.translucent {
+            overflow: visible;
+          }
           .CardEditable .text-container {
             padding: 0 20px;
           }
@@ -164,12 +298,22 @@ export default class CardEditable extends Component {
             font-size: 14px;
             text-align: left;
           }
+          .CardEditable .editable {
+            cursor: pointer;
+          }
           .CardEditable .draggable {
+            cursor: move;
+          }
+          .CardEditable .disabled {
+            display: none;
+          }
+          .CardEditable .draggable.edge,
+          .CardEditable .draggable.corner {
             position: absolute;
             width: 10px;
             height: 10px;
           }
-          .CardEditable .draggable:hover {
+          .CardEditable .draggable.edge:hover {
             background-color: rgba(255,255,0,0.1);
           }
         `}
