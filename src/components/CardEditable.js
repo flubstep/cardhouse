@@ -18,7 +18,7 @@ export default class CardEditable extends Component {
       title: TITLE,
       text: TEXT,
       dragStart: null,
-      editing: 'image'
+      editing: null
     };
   }
 
@@ -30,6 +30,22 @@ export default class CardEditable extends Component {
   componentWillUnmount() {
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('mouseup', this.handleMouseUp);
+  }
+
+  setImageOffset = (imageOffsetX, imageOffsetY) => {
+    if (this.refs.img) {
+      const iw = this.refs.img.width;
+      const ih = this.refs.img.height;
+      const vw = this.state.width;
+      const vh = this.state.height / 2;
+      const minX = Math.min(0, vw - iw);
+      const maxX = Math.max(0, vw - iw);
+      const minY = Math.min(0, vh - ih);
+      const maxY = Math.max(0, vh - ih);
+      imageOffsetX = Math.max(minX, Math.min(maxX, imageOffsetX));
+      imageOffsetY = Math.max(minY, Math.min(maxY, imageOffsetY));
+    }
+    this.setState({ imageOffsetX, imageOffsetY });
   }
 
   handleDragStart = (e, el) => {
@@ -46,7 +62,7 @@ export default class CardEditable extends Component {
   handleMouseMove = (e) => {
     if (this.state.dragStart) {
       const { el, x0, y0, originalState } = this.state.dragStart;
-      const { height, width, imageWidth, imageHeight, imageOffsetX, imageOffsetY } = originalState;
+      const { height, width, imageWidth, imageOffsetX, imageOffsetY } = originalState;
       const dx = e.clientX - x0;
       const dy = e.clientY - y0;
       switch (el) {
@@ -75,7 +91,7 @@ export default class CardEditable extends Component {
           this.setState({ height: height - 2 * dy, width: width + 2 * dx });
           break;
         case 'image':
-          this.setState({ imageOffsetX: imageOffsetX + dx, imageOffsetY: imageOffsetY + dy });
+          this.setImageOffset(imageOffsetX + dx, imageOffsetY + dy);
           break;
         case 'image-bottomright':
           this.setState({ imageWidth: imageWidth + dx });
@@ -91,6 +107,7 @@ export default class CardEditable extends Component {
       this.setState({
         dragStart: null
       });
+      this.setImageOffset(this.state.imageOffsetX, this.state.imageOffsetY);
     }
   }
 
@@ -104,6 +121,28 @@ export default class CardEditable extends Component {
         editing: null
       });
     }
+  }
+
+  renderImgShadow() {
+    if (!this.refs.img) {
+      return false;
+    }
+    const rect = this.refs.img.getBoundingClientRect();
+    const { top, left } = rect;
+    return (
+      <img
+        alt={this.state.title}
+        src={this.state.imageUrl}
+        width={this.state.imageWidth}
+        style={{
+          position: 'fixed',
+          top: top,
+          left: left,
+          opacity: 0.3,
+          margin: 0
+        }}
+      />
+    );
   }
 
   renderImgContainerFilters() {
@@ -162,63 +201,39 @@ export default class CardEditable extends Component {
         { this.state.imageUrl && (
           <div
             ref="imgContainer"
-            className={'img-container' + (this.state.editing === 'image' ? ' translucent' : '')}
+            className="img-container"
             style={{ position: 'relative', width, height: height / 2 }}
             >
-            { this.state.editing === 'image' ? (
-              <div style={{ zIndex: 1 }}>
-                <div
-                  style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    backgroundColor: 'rgba(0,0,0,0.5)'
-                  }}
-                  onClick={this.handleClick}
-                />
-                <div
-                  className='position-relative'
-                  style={{
-                    width: imageWidth,
-                    transform: `translate(${imageOffsetX}px, ${imageOffsetY}px)`,
-                  }}
-                  >
-                  <img
-                    className="draggable"
-                    alt={this.state.title}
-                    src={this.state.imageUrl}
-                    width={imageWidth}
-                    style={{ margin: 0 }}
-                    onMouseDown={e => this.handleDragStart(e, 'image')}
-                  />
-                  <div
-                    className="draggable corner"
-                    style={{
-                      height: 20,
-                      width: 20,
-                      bottom: 0,
-                      right: 0,
-                      cursor: 'nwse-resize'
-                    }}
-                    onMouseDown={e => this.handleDragStart(e, 'image-bottomright')}
-                  />
-                </div>
-                { this.renderImgContainerFilters() }
-              </div>
-            ) : (
-              <img
-                className="editable"
-                alt={this.state.title}
-                src={this.state.imageUrl}
-                width={imageWidth}
+            <div style={{ zIndex: 1 }}>
+              <div
+                className='position-relative'
                 style={{
+                  width: imageWidth,
                   transform: `translate(${imageOffsetX}px, ${imageOffsetY}px)`
                 }}
-                onClick={e => this.handleClick(e, 'image')}
-              />
-            ) }
+                >
+                <img
+                  ref="img"
+                  className="draggable"
+                  alt={this.state.title}
+                  src={this.state.imageUrl}
+                  width={imageWidth}
+                  style={{ margin: 0 }}
+                  onMouseDown={e => this.handleDragStart(e, 'image')}
+                />
+                <div
+                  className="draggable corner"
+                  style={{
+                    height: 20,
+                    width: 20,
+                    bottom: 0,
+                    right: 0,
+                    cursor: 'nwse-resize'
+                  }}
+                  onMouseDown={e => this.handleDragStart(e, 'image-bottomright')}
+                />
+              </div>
+            </div>
           </div>
         ) }
         <div className="text-container">
