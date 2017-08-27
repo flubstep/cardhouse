@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "react": "^15.6.1",
+    "react-contenteditable": "^2.0.4",
     "react-dom": "^15.6.1"
   },
   "devDependencies": {

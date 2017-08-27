@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
+import ContentEditable from 'react-contenteditable';
 
 const { IMAGE_URL, TITLE, TEXT } = require('./mockData.json');
 
@@ -46,6 +47,10 @@ export default class CardEditable extends Component {
       imageOffsetY = Math.max(minY, Math.min(maxY, imageOffsetY));
     }
     this.setState({ imageOffsetX, imageOffsetY });
+  }
+
+  handleTextChange = (e, el) => {
+    console.log(e.target.value);
   }
 
   handleDragStart = (e, el) => {
@@ -237,8 +242,20 @@ export default class CardEditable extends Component {
           </div>
         ) }
         <div className="text-container">
-          <h1 className="editable">{ this.state.title }</h1>
-          <p className="editable">{ this.state.text }</p>
+          <h1>
+            <ContentEditable
+              html={this.state.title}
+              disabled={false}
+              onChange={e => this.handleTextChange(e, 'title')}
+            />
+          </h1>
+          <p>
+            <ContentEditable
+              html={this.state.text}
+              disabled={false}
+              onChange={e => this.handleTextChange(e, 'text')}
+            />
+          </p>
         </div>
 
         <div
