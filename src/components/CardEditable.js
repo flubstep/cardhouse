@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
 import ContentEditable from 'react-contenteditable';
+import FontAwesome from 'react-fontawesome';
 
-const { IMAGE_URL, TITLE, TEXT } = require('./mockData.json');
+const TITLE_PLACEHOLDER = 'Add new title';
+const TEXT_PLACEHOLDER = 'Add card description';
 
 export default class CardEditable extends Component {
 
@@ -11,13 +13,13 @@ export default class CardEditable extends Component {
     this.state = {
       height: 480,
       width: 320,
-      imageUrl: IMAGE_URL,
+      imageUrl: null,
       imageWidth: 320,
       imageHeight: 'auto',
       imageOffsetX: 0,
       imageOffsetY: 0,
-      title: TITLE,
-      text: TEXT,
+      title: '',
+      text: '',
       dragStart: null,
       editing: null
     };
@@ -50,7 +52,9 @@ export default class CardEditable extends Component {
   }
 
   handleTextChange = (e, el) => {
-    console.log(e.target.value);
+    const newState = {};
+    newState[el] = e.target.value;
+    this.setState(newState);
   }
 
   handleDragStart = (e, el) => {
@@ -201,14 +205,16 @@ export default class CardEditable extends Component {
     const { width, height, imageWidth, imageOffsetX, imageOffsetY } = this.state;
     const edgeCls = this.state.editing ? 'edge disabled' : 'draggable edge';
     const cornerCls = this.state.editing ? 'corner disabled' : 'draggable corner';
+    const titlePlaceholder = this.state.editing === 'title' ? '' : TITLE_PLACEHOLDER;
+    const textPlaceholder = this.state.editing === 'text' ? '' : TEXT_PLACEHOLDER;
     return (
       <div className="CardEditable flex-column" style={{ width, height }}>
-        { this.state.imageUrl && (
-          <div
-            ref="imgContainer"
-            className="img-container"
-            style={{ position: 'relative', width, height: height / 2 }}
-            >
+        <div
+          ref="imgContainer"
+          className="img-container"
+          style={{ position: 'relative', width, height: height / 2 }}
+          >
+          { this.state.imageUrl ? (
             <div style={{ zIndex: 1 }}>
               <div
                 className='position-relative'
@@ -239,20 +245,27 @@ export default class CardEditable extends Component {
                 />
               </div>
             </div>
-          </div>
-        ) }
+          ) : (
+            <div className="flex-centered flex-column img-placeholder">
+              <FontAwesome name="image" size="3x" />
+              <div>Add a new photo</div>
+            </div>
+          ) }
+        </div>
         <div className="text-container">
-          <h1>
+          <h1 className={this.state.title || this.state.editing === 'title' ? '' : 'placeholder'}>
             <ContentEditable
-              html={this.state.title}
-              disabled={false}
+              html={this.state.title || titlePlaceholder}
+              onFocus={e => this.handleClick(e, 'title')}
+              onBlur={e => this.handleClick(e, null)}
               onChange={e => this.handleTextChange(e, 'title')}
             />
           </h1>
-          <p>
+          <p className={this.state.text || this.state.editing === 'text' ? '' : 'placeholder'}>
             <ContentEditable
-              html={this.state.text}
-              disabled={false}
+              html={this.state.text || textPlaceholder}
+              onFocus={e => this.handleClick(e, 'text')}
+              onBlur={e => this.handleClick(e, null)}
               onChange={e => this.handleTextChange(e, 'text')}
             />
           </p>
@@ -321,14 +334,17 @@ export default class CardEditable extends Component {
           }
           .CardEditable .text-container {
             padding: 0 20px;
+            width: 100%;
           }
           .CardEditable h1 {
             margin: 15px 0;
+            padding: 5px;
             font-size: 16px;
           }
           .CardEditable p {
             font-size: 14px;
             text-align: left;
+            padding: 5px;
           }
           .CardEditable .editable {
             cursor: pointer;
@@ -347,6 +363,20 @@ export default class CardEditable extends Component {
           }
           .CardEditable .draggable.edge:hover {
             background-color: rgba(255,255,0,0.1);
+          }
+          .CardEditable .placeholder {
+            font-style: oblique;
+            text-align: center;
+            cursor: pointer;
+            background-color: #eee;
+            width: 100%;
+          }
+          .CardEditable .img-placeholder {
+            font-style: oblique;
+            width: 100%;
+            height: 100%;
+            background-color: #eee;
+            cursor: pointer;
           }
         `}
         </style>
