@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import _ from 'lodash';
 import ContentEditable from 'react-contenteditable';
 import FontAwesome from 'react-fontawesome';
+import ImageUploadModal from './ImageUploadModal';
 
 const TITLE_PLACEHOLDER = 'Add new title';
 const TEXT_PLACEHOLDER = 'Add card description';
@@ -209,6 +210,11 @@ export default class CardEditable extends Component {
     const textPlaceholder = this.state.editing === 'text' ? '' : TEXT_PLACEHOLDER;
     return (
       <div className="CardEditable flex-column" style={{ width, height }}>
+        <ImageUploadModal
+          enabled={this.state.editing === 'image'}
+          onClose={e => this.handleClick(e, null)}
+          onSelect={url => this.setState({ imageUrl: url })}
+        />
         <div
           ref="imgContainer"
           className="img-container"
@@ -246,7 +252,10 @@ export default class CardEditable extends Component {
               </div>
             </div>
           ) : (
-            <div className="flex-centered flex-column img-placeholder">
+            <div
+              className="flex-centered flex-column img-placeholder"
+              onClick={e => this.handleClick(e, 'image')}
+              >
               <FontAwesome name="image" size="3x" />
               <div>Add a new photo</div>
             </div>

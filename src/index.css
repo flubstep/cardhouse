@@ -13,6 +13,40 @@ h1, h2, h3, h4, p, img {
     padding: 0;
 }
 
+button {
+    font-family: "Avenir", sans-serif;
+    border: none;
+    box-shadow: none;
+    margin: 0;
+}
+
+input {
+    height: 32px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 4px 12px;
+    background-color: #2e7d32;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.3pt;
+    cursor: pointer;
+    transition: background-color 80ms ease-in-out;
+}
+
+.btn:hover {
+    background-color: #388e3c;
+}
+
+.btn.disabled {
+    background-color: #b2fab4;
+    cursor: auto;
+}
+
 .flex-column {
     display: flex;
     flex-direction: column;
@@ -31,4 +65,12 @@ h1, h2, h3, h4, p, img {
 
 .position-relative {
     position: relative;
+}
+
+.dragarea {
+    margin: 10px;
+    min-height: 80px;
+    min-width: 200px;
+    border-radius: 10px;
+    border: 1px dashed #aaa;
 }
