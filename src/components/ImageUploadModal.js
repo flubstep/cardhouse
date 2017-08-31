@@ -7,16 +7,26 @@ export default class ImageUploadModal extends Component {
   constructor(props, context) {
     super(props, context);
     this.state = {
-      inputUrl: ''
+      inputUrl: '',
+      error: null
     };
   }
 
-  onSubmit = (e) => {
+  onSubmit = async (e) => {
     e.preventDefault();
     const imageUrl = this.refs.imageUrl.value;
-    if (this.props.onImageUrl) {
-      this.props.onImageUrl(imageUrl);
-    }
+    const image = new Image();
+    image.onload = () => {
+      if (this.props.onImageUrl) {
+        this.props.onImageUrl(imageUrl);
+      }
+    };
+    image.onerror = () => {
+      this.setState({
+        error: 'We were unable to load that image.'
+      });
+    };
+    image.src = imageUrl;
   }
 
   render() {
@@ -27,6 +37,11 @@ export default class ImageUploadModal extends Component {
         >
         <DialogCard>
           <div className="ImageUploadModal">
+            {
+              this.state.error && (
+                <div className="error">{ this.state.error }</div>
+              )
+            }
             <div>Input an image URL</div>
             <form onSubmit={this.onSubmit} className="flex-centered">
               <input ref="imageUrl" />
@@ -45,6 +60,9 @@ export default class ImageUploadModal extends Component {
               width: 300px;
               margin: 10px;
               font-size: 16px;
+            }
+            .ImageUploadModal .error {
+              margin-bottom: 10px;
             }
           `}
           </style>
