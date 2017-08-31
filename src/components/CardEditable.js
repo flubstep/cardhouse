@@ -133,6 +133,13 @@ export default class CardEditable extends Component {
     }
   }
 
+  handleSetImage = (url) => {
+    this.setState({
+      imageUrl: url,
+      editing: null
+    });
+  }
+
   renderImgShadow() {
     if (!this.refs.img) {
       return false;
@@ -213,7 +220,7 @@ export default class CardEditable extends Component {
         <ImageUploadModal
           enabled={this.state.editing === 'image'}
           onClose={e => this.handleClick(e, null)}
-          onSelect={url => this.setState({ imageUrl: url })}
+          onImageUrl={url => this.handleSetImage(url)}
         />
         <div
           ref="imgContainer"

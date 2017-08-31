@@ -13,7 +13,10 @@ export default class ImageUploadModal extends Component {
 
   onSubmit = (e) => {
     e.preventDefault();
-    console.log('okay');
+    const imageUrl = this.refs.imageUrl.value;
+    if (this.props.onImageUrl) {
+      this.props.onImageUrl(imageUrl);
+    }
   }
 
   render() {
