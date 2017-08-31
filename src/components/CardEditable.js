@@ -14,7 +14,7 @@ export default class CardEditable extends Component {
     this.state = {
       height: 480,
       width: 320,
-      imageUrl: null,
+      imageUrl: 'https://unsplash.it/200/300',
       imageWidth: 320,
       imageHeight: 'auto',
       imageOffsetX: 0,
@@ -257,6 +257,12 @@ export default class CardEditable extends Component {
                   onMouseDown={e => this.handleDragStart(e, 'image-bottomright')}
                 />
               </div>
+              <div
+                className="delete-img clickable flex-centered"
+                onClick={e => this.handleSetImage(null)}
+                >
+                <FontAwesome name="trash" color="white" />
+              </div>
             </div>
           ) : (
             <div
@@ -393,6 +399,24 @@ export default class CardEditable extends Component {
             height: 100%;
             background-color: #eee;
             cursor: pointer;
+          }
+          .CardEditable .delete-img {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            height: 28px;
+            width: 28px;
+            border-radius: 14px;
+            background-color: rgba(255,255,255,0.5);
+            opacity: 0;
+            transition: all 80ms ease-in-out;
+          }
+          .CardEditable .img-container:hover .delete-img {
+            opacity: 1;
+          }
+          .CardEditable .img-container:hover .delete-img:hover {
+            opacity: 1;
+            background-color: rgba(255,255,255,0.8);
           }
         `}
         </style>
