@@ -14,7 +14,7 @@ export default class CardEditable extends Component {
     this.state = {
       height: 480,
       width: 320,
-      imageUrl: 'https://unsplash.it/200/300',
+      imageUrl: null,
       imageWidth: 320,
       imageHeight: 'auto',
       imageOffsetX: 0,
