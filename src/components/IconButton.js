@@ -38,6 +38,7 @@ const IconButton = (props) => (
         font-size: 12px;
         font-weight: bold;
         background-color: rgba(0,0,0,0.6);
+        pointer-events: none;
         z-index: 10;
         opacity: 0;
         transform: translateX(20px);
