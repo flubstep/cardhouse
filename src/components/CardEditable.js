@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import _ from 'lodash';
 import ContentEditable from 'react-contenteditable';
 import FontAwesome from 'react-fontawesome';
+import IconButton from './IconButton';
 import ImageUploadModal from './ImageUploadModal';
 
 const TITLE_PLACEHOLDER = 'Add new title';
@@ -257,11 +258,18 @@ export default class CardEditable extends Component {
                   onMouseDown={e => this.handleDragStart(e, 'image-bottomright')}
                 />
               </div>
-              <div
-                className="delete-img clickable flex-centered"
-                onClick={e => this.handleSetImage(null)}
-                >
-                <FontAwesome name="trash" color="white" />
+              <div className="actions-container">
+                <IconButton
+                  name="trash"
+                  alt="Delete this image"
+                  onClick={e => this.handleSetImage(null)}
+                />
+                <div className="sp_5" />
+                <IconButton
+                  name="arrows-alt"
+                  alt="Resize this image"
+                  onClick={null}
+                />
               </div>
             </div>
           ) : (
@@ -400,23 +408,14 @@ export default class CardEditable extends Component {
             background-color: #eee;
             cursor: pointer;
           }
-          .CardEditable .delete-img {
+          .CardEditable .actions-container {
             position: absolute;
             top: 10px;
             right: 10px;
-            height: 28px;
-            width: 28px;
-            border-radius: 14px;
-            background-color: rgba(255,255,255,0.5);
             opacity: 0;
-            transition: all 80ms ease-in-out;
           }
-          .CardEditable .img-container:hover .delete-img {
+          .CardEditable .img-container:hover .actions-container {
             opacity: 1;
-          }
-          .CardEditable .img-container:hover .delete-img:hover {
-            opacity: 1;
-            background-color: rgba(255,255,255,0.8);
           }
         `}
         </style>
