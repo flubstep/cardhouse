@@ -10,6 +10,10 @@ const offsetToTransformStyle = ({ x, y, scale = 1 }) => ({
   transformOrigin: '50% 50%'
 });
 
+const cropImage = (src) => {
+  return '';
+};
+
 export default class SquareImageCropper extends Component {
 
   constructor(props, context) {
@@ -19,7 +23,7 @@ export default class SquareImageCropper extends Component {
       dragStart: null,
       dragEnd: null,
       sliderValue: 100,
-      imageProps: { width: 0, height: 0, minScale: 1, maxScale: 1 },
+      imageProps: { width: 0, height: 0, minScale: 1 },
       imageOffset: { x: 0, y: 0 },
       imageScale: 1
     };
@@ -92,39 +96,77 @@ export default class SquareImageCropper extends Component {
 
   onMouseDown = (e) => {
     e.preventDefault();
-    this.setState({
-      dragging: true,
-      dragStart: { x: e.clientX, y: e.clientY }, // TODO: check these props
-      dragEnd: { x: e.clientX, y: e.clientY }
-    });
+    this.onDragStart({ x: e.clientX, y: e.clientY });
     window.addEventListener('mousemove', this.onMouseMove);
     window.addEventListener('mouseup', this.onMouseUp);
   }
 
   onMouseMove = (e) => {
     e.preventDefault();
-    if (this.state.dragging) {
-      this.setState({
-        dragEnd: { x: e.clientX, y: e.clientY }
-      });
-    }
+    this.onDragMove({ x: e.clientX, y: e.clientY });
   }
 
   onMouseUp = (e) => {
     e.preventDefault();
+    this.onDragEnd();
     window.removeEventListener('mousemove', this.onMouseMove);
     window.removeEventListener('mouseup', this.onMouseUp);
+  }
+
+  onTouchStart = (e) => {
+    e.preventDefault();
+    const touch = e.targetTouches[0];
+    this.onDragStart({ x: touch.clientX, y: touch.clientY });
+    window.addEventListener('touchmove', this.onTouchMove);
+    window.addEventListener('touchcancel', this.onTouchEnd);
+    window.addEventListener('touchend', this.onTouchEnd);
+  }
+
+  onTouchMove = (e) => {
+    e.preventDefault();
+    const touch = e.targetTouches[0];
+    this.onDragMove({ x: touch.clientX, y: touch.clientY });
+  }
+
+  onTouchEnd = (e) => {
+    e.preventDefault();
+    this.onDragEnd();
+    window.removeEventListener('touchmove', this.onTouchMove);
+    window.removeEventListener('touchcancel', this.onTouchEnd);
+    window.removeEventListener('touchend', this.onTouchEnd);
+  }
+
+  onDragStart = (dragPosition) => {
     this.setState({
-      dragging: false,
-      dragStart: null,
-      imageOffset: this.imageOffset
+      dragging: true,
+      dragStart: dragPosition,
+      dragEnd: dragPosition
     });
+  }
+
+  onDragMove = (dragPosition) => {
+    if (this.state.dragging) {
+      this.setState({
+        dragEnd: dragPosition
+      });
+    }
+  }
+
+  onDragEnd = () => {
+    if (this.state.dragging) {
+      this.setState({
+        dragging: false,
+        dragStart: null,
+        dragEnd: null,
+        imageOffset: this.imageOffset
+      });
+    }
   }
 
   onSliderChange = (e) => {
     e.preventDefault();
     const N = e.target.value / 100;
-    const { minScale, maxScale } = this.state.imageProps;
+    const { minScale } = this.state.imageProps;
     // Use exponential scaling to feel smoother
     const scale = minScale * Math.pow(2, N);
     this.setState({
@@ -140,12 +182,16 @@ export default class SquareImageCropper extends Component {
       height: this.props.height,
       width: this.props.width
     };
+    const dragListeners = {
+      onMouseDown: this.onMouseDown,
+      onTouchStart: this.onTouchStart
+    };
     return (
       <div className="SquareImageCropper">
         <div
           className="combined-image-container"
           style={containerStyle}
-          onMouseDown={this.onMouseDown}
+          {...dragListeners}
           >
           <div
             className="faded-container"
@@ -200,7 +246,7 @@ export default class SquareImageCropper extends Component {
           </div>
         </div>
         <div className="control-footer">
-          <FontAwesome name="image" size="1x" />
+          <FontAwesome name="image" />
           <span className="slider-container">
             <input
               type="range" min="0" max="200"
@@ -209,7 +255,7 @@ export default class SquareImageCropper extends Component {
               onChange={this.onSliderChange}
             />
           </span>
-          <FontAwesome name="image" size="2x" />
+          <FontAwesome name="image" style={{ transform: 'scale(1.5)' }} />
         </div>
         <style jsx>{`
           .SquareImageCropper {
@@ -258,7 +304,7 @@ export default class SquareImageCropper extends Component {
 };
 
 SquareImageCropper.defaultProps = {
-  height: 500,
-  width: 500,
-  innerSquareSize: 300
+  height: 400,
+  width: 320,
+  innerSquareSize: 200,
 };

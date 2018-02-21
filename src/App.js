@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import './App.css';
 
-import CardEditable from './components/CardEditable';
+import SquareImageCropper from './components/SquareImageCropper';
 
 const BACKGROUND_URL = '/sam-ferrara-318709.jpg';
+const TEST_IMAGE_URL = '/vino.jpg';
 
 class App extends Component {
   render() {
@@ -12,7 +13,9 @@ class App extends Component {
         background: `url(${BACKGROUND_URL})`,
         backgroundSize: 'cover'
       }}>
-        <CardEditable />
+        <SquareImageCropper
+          src={TEST_IMAGE_URL}
+        />
       </div>
     );
   }
