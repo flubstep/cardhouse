@@ -71,8 +71,6 @@ export default class SquareImageCropper extends Component {
     const outer = container.getBoundingClientRect();
     const inner = image.getBoundingClientRect();
 
-    const { imageProps, imageScale } = this.state;
-
     // ctx.drawImage(image, dx, dy, dWidth, dHeight)
     ctx.drawImage(
       image,
