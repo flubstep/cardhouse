@@ -10,10 +10,6 @@ const offsetToTransformStyle = ({ x, y, scale = 1 }) => ({
   transformOrigin: '50% 50%'
 });
 
-const cropImage = (src) => {
-  return '';
-};
-
 export default class SquareImageCropper extends Component {
 
   constructor(props, context) {
@@ -60,6 +56,36 @@ export default class SquareImageCropper extends Component {
       x: clamp(x, minX, maxX),
       y: clamp(y, minY, maxY)
     };
+  }
+
+  createCroppedImage = () => {
+    const image = this.refs.visibleSourceImage;
+    const container = this.refs.visibleContainer;
+    const canvas = document.createElement('canvas');
+    canvas.width = this.props.innerSquareSize;
+    canvas.height = this.props.innerSquareSize;
+    const ctx = canvas.getContext('2d');
+
+    // Use the client bounding rect to be as true to the DOM representation
+    // as possible (as opposed to using the image offset params)
+    const outer = container.getBoundingClientRect();
+    const inner = image.getBoundingClientRect();
+
+    const { imageProps, imageScale } = this.state;
+
+    // ctx.drawImage(image, dx, dy, dWidth, dHeight)
+    ctx.drawImage(
+      image,
+      inner.x - outer.x,
+      inner.y - outer.y,
+      inner.width,
+      inner.height
+    );
+    const croppedImage = canvas.toDataURL();
+    if (this.props.onCrop) {
+      this.props.onCrop(croppedImage);
+    }
+    return croppedImage;
   }
 
   onImageLoad = (e) => {
@@ -123,7 +149,6 @@ export default class SquareImageCropper extends Component {
   }
 
   onTouchMove = (e) => {
-    e.preventDefault();
     const touch = e.targetTouches[0];
     this.onDragMove({ x: touch.clientX, y: touch.clientY });
   }
@@ -218,6 +243,7 @@ export default class SquareImageCropper extends Component {
             >
             <div
               className="visible-square"
+              ref="visibleContainer"
               style={{
                 height: this.props.innerSquareSize,
                 width: this.props.innerSquareSize,
@@ -228,6 +254,7 @@ export default class SquareImageCropper extends Component {
               >
               <img
                 alt="Your Profile"
+                ref="visibleSourceImage"
                 src={this.props.src}
                 style={{
                   height: this.state.imageProps.height,
@@ -246,16 +273,20 @@ export default class SquareImageCropper extends Component {
           </div>
         </div>
         <div className="control-footer">
-          <FontAwesome name="image" />
-          <span className="slider-container">
-            <input
-              type="range" min="0" max="200"
-              value={this.state.sliderValue}
-              className="control-slider"
-              onChange={this.onSliderChange}
-            />
+          <span className="scale-container">
+            <FontAwesome name="image" />
+            <span className="slider-container">
+              <input
+                width={this.props.width / 2}
+                type="range" min="0" max="200"
+                value={this.state.sliderValue}
+                className="control-slider"
+                onChange={this.onSliderChange}
+              />
+            </span>
+            <FontAwesome name="image" style={{ transform: 'scale(1.5)' }} />
           </span>
-          <FontAwesome name="image" style={{ transform: 'scale(1.5)' }} />
+          <button className="btn crop-button" onClick={this.createCroppedImage}>Crop</button>
         </div>
         <style jsx>{`
           .SquareImageCropper {
@@ -281,10 +312,8 @@ export default class SquareImageCropper extends Component {
             background-color: white;
             display: flex;
             align-items: center;
-            justify-content: center;
-          }
-          .slider-container {
-            margin: 0 10px;
+            justify-content: space-around;
+            padding: 5px;
           }
 
           .faded-container {
@@ -296,6 +325,18 @@ export default class SquareImageCropper extends Component {
           .faded-container img {
             opacity: 0.2;
           }
+
+          .scale-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .slider-container {
+            margin: 0 10px;
+          }
+          .crop-button {
+            float: right;
+          }
         `}
         </style>
       </div>
@@ -304,7 +345,8 @@ export default class SquareImageCropper extends Component {
 };
 
 SquareImageCropper.defaultProps = {
-  height: 400,
-  width: 320,
-  innerSquareSize: 200,
+  height: 500,
+  width: 600,
+  innerSquareSize: 300,
+  onCrop: null
 };
