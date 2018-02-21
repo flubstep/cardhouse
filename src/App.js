@@ -25,6 +25,10 @@ class App extends Component {
   }
 
   render() {
+    const limiter = Math.min(window.innerHeight, window.innerWidth);
+    const height = limiter > 700 ? 600 : 300;
+    const width = height;
+    const innerSquareSize = width / 3 * 2;
     return (
       <div className="App" style={{
         background: `url(${BACKGROUND_URL})`,
@@ -52,6 +56,9 @@ class App extends Component {
         }
         <SquareImageCropper
           src={TEST_IMAGE_URL}
+          height={height}
+          width={width}
+          innerSquareSize={innerSquareSize}
           onCrop={this.onCrop}
         />
       </div>
