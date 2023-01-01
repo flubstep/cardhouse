@@ -9,7 +9,7 @@
     "react-fontawesome": "^1.6.1"
   },
   "devDependencies": {
-    "react-scripts": "1.0.11"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "NODE_PATH=src react-scripts start",
